@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GW2 Stats – Blaupause</title>
+
+    <!-- Chart.js für Graphen -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* =====================
+           DARK MODE GRUNDGERÜST
+        ===================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            color: #c8a96e; /* GW2-Gold */
+            margin-bottom: 12px;
+        }
+
+        section {
+            background-color: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* =====================
+           NAVIGATION / KNÖPFE
+        ===================== */
+        nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Knopf-Grundstil */
+        button {
+            background-color: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #c8a96e;
+            border-radius: 6px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #c8a96e;
+            color: #1a1a2e;
+        }
+
+        /* Aktiver Knopf (z.B. aktive Seite) */
+        button.active {
+            background-color: #c8a96e;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        /* =====================
+           DROPDOWNS
+        ===================== */
+        select {
+            background-color: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #c8a96e;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #e0e0e0;
+        }
+
+        /* =====================
+           CHECKBOXEN
+        ===================== */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            accent-color: #c8a96e; /* Farbe der Checkbox */
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* =====================
+           TABELLE
+        ===================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th {
+            background-color: #0f3460;
+            color: #c8a96e;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid #c8a96e;
+            cursor: pointer; /* für sortierbare Spalten */
+        }
+
+        th:hover {
+            background-color: #1a4a8a;
+        }
+
+        td {
+            padding: 8px 14px;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        tr:hover {
+            background-color: #0f3460;
+        }
+
+        /* Zebra-Streifen */
+        tr:nth-child(even) {
+            background-color: #1a2a4a;
+        }
+
+        /* =====================
+           GRAPH (weiß)
+        ===================== */
+        .chart-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        /* =====================
+           FILTER-LEISTE
+        ===================== */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-bar label {
+            color: #c8a96e;
+            font-weight: bold;
+        }
+
+        /* =====================
+           SEITEN (für Navigation)
+        ===================== */
+        .page {
+            display: none; /* standardmäßig versteckt */
+        }
+
+        .page.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⚔️ GW2 Raid Stats</h1>
+
+    <!-- =====================
+         NAVIGATION MIT KNÖPFEN
+    ===================== -->
+    <nav>
+        <button class="active" onclick="showPage('uebersicht', this)">Übersicht</button>
+        <button onclick="showPage('spieler', this)">Spieler</button>
+        <button onclick="showPage('fortschritt', this)">Fortschritt</button>
+    </nav>
+
+
+    <!-- =====================
+         SEITE: ÜBERSICHT
+    ===================== -->
+    <div id="uebersicht" class="page active">
+        <section>
+            <h2>Filter</h2>
+            <div class="filter-bar">
+
+                <!-- DROPDOWN: Gruppe wählen -->
+                <div>
+                    <label>Gruppe:</label><br>
+                    <select id="filter-gruppe" onchange="filterChanged()">
+                        <option value="">Alle</option>
+                        <option value="Gruppe1">Gruppe 1</option>
+                        <option value="Gruppe2">Gruppe 2</option>
+                    </select>
+                </div>
+
+                <!-- DROPDOWN: Boss wählen -->
+                <div>
+                    <label>Boss:</label><br>
+                    <select id="filter-boss" onchange="filterChanged()">
+                        <option value="">Alle</option>
+                        <option value="Gorseval">Gorseval</option>
+                        <option value="Sabetha">Sabetha</option>
+                    </select>
+                </div>
+
+                <!-- CHECKBOXEN: Erfolg filtern -->
+                <div>
+                    <label>Status:</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" id="cb-success" checked onchange="filterChanged()">
+                            Kills
+                        </label>
+                        <label>
+                            <input type="checkbox" id="cb-fail" onchange="filterChanged()">
+                            Fails
+                        </label>
+                        <label>
+                            <input type="checkbox" id="cb-cm" onchange="filterChanged()">
+                            CM
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TABELLE -->
+        <section>
+            <h2>Logs</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Datum ↕</th>
+                        <th onclick="sortTable(1)">Boss ↕</th>
+                        <th onclick="sortTable(2)">Gruppe ↕</th>
+                        <th onclick="sortTable(3)">Dauer ↕</th>
+                        <th onclick="sortTable(4)">Erfolg ↕</th>
+                    </tr>
+                </thead>
+                <tbody id="log-tabelle">
+                    <!-- Wird per JavaScript befüllt -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+
+    <!-- =====================
+         SEITE: SPIELER
+    ===================== -->
+    <div id="spieler" class="page">
+        <section>
+            <h2>Spieler auswählen</h2>
+            <div class="filter-bar">
+                <div>
+                    <label>Spieler:</label><br>
+                    <select id="filter-spieler" onchange="ladeSpielerDaten()">
+                        <option value="">-- wählen --</option>
+                        <!-- Wird per JS befüllt -->
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>DPS über Zeit</h2>
+            <div class="chart-container">
+                <canvas id="dps-chart"></canvas>
+            </div>
+        </section>
+    </div>
+
+
+    <!-- =====================
+         SEITE: FORTSCHRITT
+    ===================== -->
+    <div id="fortschritt" class="page">
+        <section>
+            <h2>Kills pro Woche</h2>
+            <div class="chart-container">
+                <canvas id="kills-chart"></canvas>
+            </div>
+        </section>
+    </div>
+
+
+    <script>
+        // =====================
+        // SUPABASE VERBINDUNG
+        // =====================
+        const SUPABASE_URL = "https://dein-projekt.supabase.co";
+        const SUPABASE_KEY = "dein-anon-key";
+
+        async function supabaseGet(table, params = "") {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
+            });
+            return await response.json();
+        }
+
+
+        // =====================
+        // NAVIGATION
+        // =====================
+        function showPage(pageId, button) {
+            // Alle Seiten verstecken
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // Alle Knöpfe deaktivieren
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+
+            // Gewählte Seite & Knopf aktivieren
+            document.getElementById(pageId).classList.add('active');
+            button.classList.add('active');
+        }
+
+
+        // =====================
+        // TABELLE BEFÜLLEN
+        // =====================
+        async function ladeLogs() {
+            const gruppe = document.getElementById('filter-gruppe').value;
+            const boss   = document.getElementById('filter-boss').value;
+            const success = document.getElementById('cb-success').checked;
+            const fail    = document.getElementById('cb-fail').checked;
+
+            // Query zusammenbauen
+            let params = "order=time_start.desc";
+            if (gruppe) params += `&group_name=eq.${gruppe}`;
+            if (boss)   params += `&fight_name=eq.${boss}`;
+            if (success && !fail) params += `&success=eq.true`;
+            if (fail && !success) params += `&success=eq.false`;
+
+            const logs = await supabaseGet("logs", params);
+
+            const tbody = document.getElementById('log-tabelle');
+            tbody.innerHTML = ""; // leeren
+
+            for (const log of logs) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(log.time_start).toLocaleDateString('de-DE')}</td>
+                    <td>${log.fight_name}</td>
+                    <td>${log.group_name}</td>
+                    <td>${msToMinutes(log.duration_ms)}</td>
+                    <td>${log.success ? '✅' : '❌'}</td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+
+        function filterChanged() {
+            ladeLogs();
+        }
+
+        function msToMinutes(ms) {
+            const min = Math.floor(ms / 60000);
+            const sec = Math.floor((ms % 60000) / 1000);
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+        }
+
+
+        // =====================
+        // TABELLE SORTIEREN
+        // =====================
+        let sortDir = {}; // merkt sich Richtung pro Spalte
+
+        function sortTable(colIndex) {
+            const tbody = document.getElementById('log-tabelle');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const asc = !sortDir[colIndex];
+            sortDir[colIndex] = asc;
+
+            rows.sort((a, b) => {
+                const aVal = a.cells[colIndex].innerText;
+                const bVal = b.cells[colIndex].innerText;
+                return asc
+                    ? aVal.localeCompare(bVal, 'de', { numeric: true })
+                    : bVal.localeCompare(aVal, 'de', { numeric: true });
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+        }
+
+
+        // =====================
+        // GRAPH: DPS ÜBER ZEIT
+        // =====================
+        let dpsChart = null;
+
+        async function ladeSpielerDaten() {
+            const account = document.getElementById('filter-spieler').value;
+            if (!account) return;
+
+            // Spieler-IDs holen
+            const spieler = await supabaseGet("players", `account=eq.${account}`);
+            const playerIds = spieler.map(p => p.id);
+
+            // DPS Daten holen (Phase 0 = Full Fight)
+            const dpsData = await supabaseGet("player_dps",
+                `player_id=in.(${playerIds.join(',')})&phase_index=eq.0&order=player_id`
+            );
+
+            const labels = dpsData.map((_, i) => `Log ${i + 1}`);
+            const values = dpsData.map(d => d.dps);
+
+            // Chart erstellen oder updaten
+            if (dpsChart) dpsChart.destroy();
+
+            dpsChart = new Chart(document.getElementById('dps-chart'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'DPS',
+                        data: values,
+                        borderColor: '#c8a96e',
+                        backgroundColor: 'rgba(200, 169, 110, 0.2)',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#1a1a2e' } } },
+                    scales: {
+                        x: { ticks: { color: '#1a1a2e' } },
+                        y: { ticks: { color: '#1a1a2e' } }
+                    }
+                }
+            });
+        }
+
+
+        // =====================
+        // GRAPH: KILLS PRO WOCHE
+        // =====================
+        async function ladeKillsChart() {
+            const logs = await supabaseGet("logs", "success=eq.true&order=time_start.asc");
+
+            // Nach Woche gruppieren
+            const perWoche = {};
+            for (const log of logs) {
+                const woche = getWeekLabel(new Date(log.time_start));
+                perWoche[woche] = (perWoche[woche] || 0) + 1;
+            }
+
+            new Chart(document.getElementById('kills-chart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(perWoche),
+                    datasets: [{
+                        label: 'Kills',
+                        data: Object.values(perWoche),
+                        backgroundColor: '#c8a96e'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#1a1a2e' } } },
+                    scales: {
+                        x: { ticks: { color: '#1a1a2e' } },
+                        y: { ticks: { color: '#1a1a2e' }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function getWeekLabel(date) {
+            const startOfYear = new Date(date.getFullYear(), 0, 1);
+            const week = Math.ceil(((date - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+            return `KW${week} ${date.getFullYear()}`;
+        }
+
+
+        // =====================
+        // START
+        // =====================
+        ladeLogs();
+        ladeKillsChart();
+    </script>
+</body>
+</html>
