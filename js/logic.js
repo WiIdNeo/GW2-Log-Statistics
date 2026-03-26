@@ -1,191 +1,103 @@
-const dropdown = document.querySelector('select');
+// ============================================================
+//  logic.js  –  UI-Logik, Modal, Filter, Orchestrierung
+//  Abhängigkeiten: db.js, charts.js (müssen vorher geladen sein)
+// ============================================================
 
-dropdown.addEventListener('change', function() {
-    console.log(dropdown.value);
+
+// ── Modal: Klick außerhalb schließt es ────────────────────
+document.getElementById('modal').addEventListener('click', function (e) {
+    if (e.target === this) this.style.display = 'none';
 });
 
 
-function filterAnwenden() {
-    const filter = {
-        option1: document.getElementById('filter1').checked,
-        option2: document.getElementById('filter2').checked,
-        auswahl: document.getElementById('filter3').value,
-    };
+// ── Gruppe gewählt → Encounter-Dropdown befüllen ──────────
+document.getElementById('group-select').addEventListener('change', async function () {
+    const groupName = this.value;
+    const encounterSelect = document.getElementById('encounter-select');
 
-    console.log(filter);
-    // { option1: true, option2: false, auswahl: "a" }
+    encounterSelect.innerHTML = '<option value="" disabled selected>Wird geladen…</option>';
+
+    const encounters = await fetchEncountersByGroup(groupName);
+
+    if (!encounters?.length) {
+        encounterSelect.innerHTML = '<option value="" disabled selected>Keine Daten</option>';
+        return;
+    }
+
+    encounterSelect.innerHTML = '<option value="" disabled selected>---</option>';
+    encounters.forEach(({ fight_name }) => {
+        const opt = document.createElement('option');
+        opt.value       = fight_name;
+        opt.textContent = fight_name;
+        encounterSelect.appendChild(opt);
+    });
+});
+
+
+// ── Encounter gewählt → Spieler-Checkboxes befüllen ───────
+document.getElementById('encounter-select').addEventListener('change', async function () {
+    const groupName   = document.getElementById('group-select').value;
+    const fightName   = this.value;
+    const section     = document.getElementById('player-filter-section');
+    const checkboxDiv = document.getElementById('player-checkboxes');
+
+    section.style.display = 'none';
+    checkboxDiv.innerHTML  = '';
+
+    const players = await fetchPlayersByGroupAndEncounter(groupName, fightName);
+    if (!players?.length) return;
+
+    players.forEach(name => {
+        const label = document.createElement('label');
+        const cb    = document.createElement('input');
+        cb.type           = 'checkbox';
+        cb.value          = name;
+        cb.dataset.player = name;
+        cb.checked        = true;
+
+        label.appendChild(cb);
+        label.append(` ${name}`);
+        checkboxDiv.appendChild(label);
+    });
+
+    section.style.display = 'block';
+});
+
+
+// ── Filter anwenden → Daten laden → Charts rendern ────────
+async function filterAnwenden() {
+    const groupName = document.getElementById('group-select').value;
+    const fightName = document.getElementById('encounter-select').value;
+
+    if (!groupName || !fightName) {
+        alert('Bitte Gruppe und Encounter wählen.');
+        return;
+    }
+
+    // Gewählte Spieler auslesen (leeres Array = alle)
+    const checkedBoxes = document.querySelectorAll('#player-checkboxes input[type=checkbox]:checked');
+    const playerNames  = Array.from(checkedBoxes).map(cb => cb.value);
 
     // Modal schließen
     document.getElementById('modal').style.display = 'none';
 
-    // Hier mit den Filterwerten weiterarbeiten...
-}
-document.getElementById('modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.style.display = 'none';
+    // Loading-Indicator
+    const loading = document.getElementById('loading');
+    loading.style.display = 'block';
+
+    try {
+        const data = await fetchRaidData({ groupName, fightName, playerNames });
+
+        if (!data) {
+            loading.textContent = 'Keine Daten gefunden.';
+            return;
+        }
+
+        renderAllCharts(data);
+    } catch (err) {
+        console.error('[logic] Fehler beim Laden:', err);
+        loading.textContent = 'Fehler beim Laden der Daten.';
+    } finally {
+        loading.style.display = 'none';
     }
-});
-
-var DPS_Chart = new Chart("DPS_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var ConditionDamage_Chart = new Chart("ConditionDamage_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var PowerDamage_Chart = new Chart("PowerDamage_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var CC_Chart = new Chart("CC_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var TakenDamage_Chart = new Chart("TakenDamage_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var NumberBoonStrips_Chart = new Chart("NumberBoonStrips_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var resivedCC_Chart = new Chart("recivedCC_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var resivedDurationCC_Chart = new Chart("recivedDurationCC_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var resivedCC_Chart = new Chart("recivedCC_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var safes_Chart = new Chart("safes_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var savedTime_Chart = new Chart("savedTimeCC_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var wasts_Chart = new Chart("wastsCC_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var wastedTime_Chart = new Chart("wastedTime_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var stackDist_Chart = new Chart("stackDist_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var commDist_Chart = new Chart("commDist_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var avgActiveBoons_Chart = new Chart("avgActiveBoons_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var avgActiveConditions_Chart = new Chart("avgActiveConditions_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var castTime_Chart = new Chart("castTime_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var flankingRate_Chart = new Chart("flankingRate_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var downs_Chart = new Chart("downs_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var death_Chart = new Chart("death_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var ressurectsBoons_Chart = new Chart("ressurects_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var resTime_Chart = new Chart("resTime_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var condiCleanses_Chart = new Chart("CondiCleanses_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var boonStrips_Chart = new Chart("boonStrips_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var phaseDuration_Chart = new Chart("PhaseDuration_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-var avgActiveBoons_Chart = new Chart("recivedCC_Chart", {
-  type: "line",
-  data: {},
-  options: {}
-});
-
-
+}
