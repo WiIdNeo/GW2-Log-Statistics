@@ -282,13 +282,13 @@ function renderDashboard(sel) {
     line('chart-dmg-taken',         labels, ds(withDef, p => p.stats.damage_taken));
     line('chart-cc-count',          labels, ds(withDef, p => p.stats.received_crowd_control));
     line('chart-cc-duration',       labels, ds(withDef, p => p.stats.received_crowd_control_duration));
-    line('chart-boon-strips-taken', labels, ds(withDef, p => p.stats.boon_strips)); // eingehend
+    line('chart-boon-strips-taken', labels, ds(withDef, p => p.stats.boon_strips));
 
     // ── SUPPORT ───────────────────────────────────────────────
     line('chart-rezzes',            labels, ds(withSup, p => p.stats.resurrects));
     line('chart-rez-time',          labels, ds(withSup, p => p.stats.resurrect_time));
     line('chart-cleanses',          labels, ds(withSup, p => p.stats.condi_cleanse));
-    line('chart-boon-strips',       labels, ds(withSup, p => p.stats.boon_strips)); // ausgehend
+    line('chart-boon-strips',       labels, ds(withSup, p => p.stats.boon_strips));
 
     // ── STATS ─────────────────────────────────────────────────
     line('chart-stack-dist',        labels, ds(withStat, p => p.stats.stack_dist));
@@ -304,8 +304,11 @@ function renderDashboard(sel) {
     line('chart-avg-boons',         labels, ds(withStat, p => p.stats.avg_active_boons));
     line('chart-avg-conditions',    labels, ds(withStat, p => p.stats.avg_active_conditions));
 
-    // ── BOSS HEALTH (invertiert: 100 - burned) ────────────────
+    // ── BOSS HEALTH ───────────────────────────────────────────
     buildBossHealthChart(bosses, logs, labels);
+
+    // ── WIN / LOSS ────────────────────────────────────────────
+    buildWinLossChart(logs);
 
     buildClassCharts(allRows, sel);
     buildMechanicCharts(mechanics, allRows, logs, labels, sel);
@@ -315,11 +318,14 @@ function renderDashboard(sel) {
 // BOSS HEALTH CHART
 // ════════════════════════════════════════════
 function buildBossHealthChart(bosses, logs, labels) {
-    // Pro Log den niedrigsten Wert nehmen (falls mehrere Bosse)
     const data = logs.map(log => {
         const entries = bosses.filter(b => b.log_id === log.id);
         if (!entries.length) return null;
-        const minBurned = Math.min(...entries.map(b => b.health_percent_burned ?? 0));
+
+        const validEntries = entries.filter(b => b.health_percent_burned != null);
+        if (!validEntries.length) return null;
+
+        const minBurned = Math.min(...validEntries.map(b => b.health_percent_burned));
         return parseFloat((100 - minBurned).toFixed(2));
     });
 
@@ -352,6 +358,58 @@ function buildBossHealthChart(bosses, logs, labels) {
                 color: '#e8d5ff', font: { family: 'Exo 2', size: 11 }, boxWidth: 12
             }}}
         }
+    });
+}
+
+// ════════════════════════════════════════════
+// WIN / LOSS DONUT
+// ════════════════════════════════════════════
+function buildWinLossChart(logs) {
+    const wins  = logs.filter(l => l.success).length;
+    const fails = logs.length - wins;
+    const rate  = logs.length ? Math.round((wins / logs.length) * 100) : 0;
+
+    const el = document.getElementById('chart-winloss');
+    if (!el) return;
+    if (activeCharts['winloss']) activeCharts['winloss'].destroy();
+
+    const centerTextPlugin = {
+        id: 'center-text',
+        beforeDraw(chart) {
+            const { ctx, chartArea: { top, bottom, left, right } } = chart;
+            const cx = (left + right) / 2;
+            const cy = (top + bottom) / 2;
+            ctx.save();
+            ctx.font = 'bold 28px Rajdhani';
+            ctx.fillStyle = '#e8d5ff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${rate}%`, cx, cy - 10);
+            ctx.font = '13px Exo 2';
+            ctx.fillStyle = '#7a6a9a';
+            ctx.fillText(`${wins} / ${logs.length} Wins`, cx, cy + 18);
+            ctx.restore();
+        }
+    };
+
+    activeCharts['winloss'] = new Chart(el, {
+        type: 'doughnut',
+        data: {
+            labels: ['Wins', 'Fails'],
+            datasets: [{
+                data: [wins, fails],
+                backgroundColor: ['#50e090', '#e05050'],
+                borderColor:     ['#0a0212'],
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            cutout: '70%',
+            plugins: {
+                legend: { labels: { color: '#e8d5ff', font: { family: 'Exo 2', size: 11 } } },
+            }
+        },
+        plugins: [centerTextPlugin]
     });
 }
 
