@@ -1,313 +1,112 @@
-<html>
-    <head>
-        <link rel="stylesheet" href="css/style.css">
-    </head>
-    <body>
-        <Header>
-            <h1>Raid Statistics</h1>
-                <button onclick="document.getElementById('modal').style.display='flex'">
-                    Filter öffnen
-                </button>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raid Statistics</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css" >
+</head>
+<body>
 
-                <!-- Das Modal -->
-                <div id="modal" class="modal-overlay">
-                    <div class="modal-content">
-                        <h1>Filter</h1>
-                        <h2>Gruppe</h2>
-                        <select>
-                            <option value="no group" disabled selected>---</option>
-                            <option value="ATSG Raid Static">ATSG Raid Static</option>
-                            <option value="Golem">Golem</option>
-                        </select>
-                    <!--    <h2>Encounter</h2>
-                            <select>
-                            <option value="All Encounter" disabled selected>---</option>
-                            <option value="All Encounter">Alle Encounter</option>
-                            <optgroup label="Wing 1">
-                                <option value="Wing 1">Wing 1</option>
-                                <option value="Spirit Vale">Vale Guardian</option>
-                                <option value="Gorseval">Gorseval</option>
-                                <option value="Sabetha">Sabetha</option>
-                            </optgroup>
-                            <optgroup label="Wing 2">
-                                <option value="Wing 2">Wing 2</option>
-                                <option value="Slothar">Slothar</option>
-                                <option value="Trio">Trio</option>
-                                <option value="Matthias">Matthias</option>
-                            </optgroup>
-                            <optgroup label="Wing 3">
-                                <option value="Wing 3">Wing 3</option>
-                                <option value="Escord">Escord</option>
-                                <option value="Keep Construct">Keep Construct</option>
-                                <option value="Xera">Xera</option>
-                            </optgroup>
-                            <optgroup label="Wing 4">
-                                <option value="Wing 4">Wing 4</option>
-                                <option value="Cairn">Cairn</option>
-                                <option value="Mursaat Overseer">Mursaat Overseer</option>
-                                <option value="Samarog">Samarog</option>
-                                <option value="Deimos">Deimos</option>
-                            </optgroup>
-                            <optgroup label="Wing 5">
-                                <option value="Wing 5">Wing 5</option>
-                                <option value="Soulless Horror">Soulless Horror</option>
-                                <option value="Broken King">    Broken King</option>
-                                <option value="Eater of Souls">    Eater of Souls</option>
-                                <option value="Eyes">    Eyes</option>
-                                <option value="Dhuum">Dhuum</option>
-                            </optgroup>
-                            <optgroup label="Wing 6">
-                                <option value="Wing 6">Wing 6</option>
-                                <option value="Conjured Amalgamit">Conjured Amalgamit</option>
-                                <option value="Twins">Largos Twins</option>
-                                <option value="Q1">Qadim</option>
-                            </optgroup>
-                            <optgroup label="Wing 7">
-                                <option value="Wing 7">Wing 7</option>
-                                <option value="Adina">Adina</option>
-                                <option value="Sabir">Sabir</option>
-                                <option value="QtP">Qadim the Peerless</option>
-                            </optgroup>
-                            <optgroup label="Wing 8">
-                                <option value="Wing 8">Wing 8</option>
-                                <option value="Greer">Greer</option>
-                                <option value="Decima">Decima</option>
-                                <option value="Ura">Ura</option>
-                            </optgroup>
-                            <optgroup label="Strikes">
-                                <option value="IBC">Ice Broot Construct</option>
-                                <option value="Freanir">Fraenir of Jormag</option>
-                                <option value="Voice and Claw">Voice and Claw of the Fallen</option>
-                                <option value="Boneskinner">Boneskinner</option>
-                                <option value="Wisper">Wisper of Jormag</option>
-                                <option value="AH">Aetherblade Hideout</option>
-                                <option value="XJJ">Xulai Junk Jard</option>
-                                <option value="KO">Kaineng Overlook</option>
-                                <option value="HT">Harvest Temple</option>
-                                <option value="OLC">Old Lions Court</option>
-                                <option value="CO">Cosmic Observatory</option>
-                                <option value="Febe">Temple of Febe</option>
-                                <option value="Kela">Kela</option>
-                            </optgroup>
-                        </select>
-                    <h2>Players</h2>
-                        <label>
-                            <input type="checkbox" id="filter1" checked> Max
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter2"checked> Neo
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter3"checked> Raith
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter4"checked> Bernd
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter5"checked> Eli
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter6"checked> Markus
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter7"checked> SchokoDrops
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter8"checked> Kira
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter9"checked> Kevin
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter10"checked> Kiki
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter11"checked> Connor
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter12"checked> Katia
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter13"checked> Tim
-                        </label>
-                    <h2>Classes</h2>
-                        <label>
-                            <input type="checkbox" id="filter-1" checked><img class="small_image" src=""/> Core Warrior
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-2"checked><img class="small_image" src="https://i.imgur.com/dNY6e8n.png"/> Berserker
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-3"checked><img class="small_image" src=""/> Spellbreaker
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-4"checked><img class="small_image" src=""/> Bladesworn
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-5"checked><img class="small_image" src=""/> Paragon
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-6"checked><img class="small_image" src=""/> Core Guardian
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-7"checked><img class="small_image" src="https://i.imgur.com/GqKocpf.png"/> Dragonhunter
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-8"checked><img class="small_image" src="https://i.imgur.com/TOsmJOl.png"/> Firebrand
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-9"checked><img class="small_image" src="https://i.imgur.com/pIFrNLa.png"/> Willbender
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-10"checked><img class="small_image" src=""/> Luminary
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-11"checked><img class="small_image" src=""/> Core Rev
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-12"checked><img class="small_image" src="https://i.imgur.com/O7kekkb.png"/> Herald
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-13"checked><img class="small_image" src="https://i.imgur.com/whOAxsp.png"/> Renegade
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-1" checked><img class="small_image" src=""/> Vindicator
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-2"checked><img class="small_image" src=""/> Conduit
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-3"checked><img class="small_image" src=""/> Core Ranger
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-4"checked><img class="small_image" src="https://i.imgur.com/Glb39dj.png"/> Druid
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-5"checked><img class="small_image" src="https://i.imgur.com/1uDdNtU.png"/> Soulbeast
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-6"checked><img class="small_image" src=""/> Untamed
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-7"checked><img class="small_image" src=""/> Galeshot
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-8"checked><img class="small_image" src=""/> Core Thief
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-9"checked><img class="small_image" src="https://i.imgur.com/RiCJalE.png"/> Daredevil
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-10"checked><img class="small_image" src="https://i.imgur.com/kryyJRy.png"/> Deadeye
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-11"checked><img class="small_image" src=""/> Specter
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-12"checked><img class="small_image" src=""/> Antiquary
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-13"checked><img class="small_image" src=""/> Core Engineer
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-14" checked><img class="small_image" src="https://i.imgur.com/Cd9yD43.png"/> Scrapper
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-15"checked><img class="small_image" src="https://i.imgur.com/Q96yagv.png"/> Holosmith
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-16"checked><img class="small_image" src="https://i.imgur.com/1jUOMlX.png"/> Mechanist
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-17"checked><img class="small_image" src=""/> Amalgam
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-18"checked><img class="small_image" src=""/> Core Ele
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-19"checked><img class="small_image" src="https://i.imgur.com/FnLyZvk.png"/> Temepst
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-20"checked><img class="small_image" src=""/> Weaver
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-21"checked><img class="small_image" src="https://i.imgur.com/2B73rSk.png"/> Catalyst
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-22"checked><img class="small_image" src=""/> Evoker
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-23"checked> <img class="small_image" src=""/>Core Necro
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-24"checked><img class="small_image" src="https://i.imgur.com/X463V90.png"/> Reaper
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-25"checked><img class="small_image" src="https://i.imgur.com/uVdgw3H.png"/> Scourge
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-26"checked><img class="small_image" src="https://i.imgur.com/PwhIT4u.png"/> Harbinger
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-27" checked><img class="small_image" src=""/> Ritualist
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-28"checked><img class="small_image" src=""/> Core Mesmer
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-29"checked><img class="small_image" src="https://i.imgur.com/rI1tW64.png"/> Chronomancer
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-30"checked><img class="small_image" src=""/> Mirage
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-31"checked><img class="small_image" src="https://i.imgur.com/sncfljQ.png"/> Virtuoso
-                        </label>
-                        <label>
-                            <input type="checkbox" id="filter-32"checked><img class="small_image" src=""/> Troubadour
-                        </label>
-                        -->
-                        <div class="modal-buttons">
-                            <button onclick="filterAnwenden()">Anwenden</button>
-                            <button onclick="document.getElementById('modal').style.display='none'">Abbrechen</button>
-                        </div>
-                    </div>
+<header>
+    <h1>&#9876; Raid Statistics</h1>
+    <div class="header-actions">
+        <span id="status-indicator">Kein Filter aktiv</span>
+        <button class="btn btn-primary" onclick="openModal()">Filter öffnen</button>
+    </div>
+</header>
+
+<div id="modal" class="modal-overlay" onclick="handleOverlayClick(event)">
+    <div class="modal-content">
+        <h1>Filter</h1>
+
+        <div class="modal-section-label">Gruppe</div>
+        <select id="sel-group">
+            <option value="">— wird geladen… —</option>
+        </select>
+
+        <div class="modal-section-label">Encounter</div>
+        <select id="sel-encounter" disabled>
+            <option value="">Alle Encounter</option>
+        </select>
+
+        <div class="modal-section-label">Phase</div>
+        <select id="sel-phase" disabled>
+            <option value="0">Phase 0 (Gesamt)</option>
+        </select>
+
+        <div>
+            <div class="player-list-header">
+                <div class="modal-section-label" style="margin-bottom:0">Spieler</div>
+                <div class="toggle-row">
+                    <button class="btn btn-ghost btn-sm" onclick="toggleAllPlayers(true)">Alle an</button>
+                    <button class="btn btn-ghost btn-sm" onclick="toggleAllPlayers(false)">Alle aus</button>
                 </div>
-        </Header>
-        <div class="chart">
+            </div>
+            <div style="height:10px"></div>
+            <div id="player-checklist" class="player-checklist empty">Erst Gruppe wählen</div>
+        </div>
 
-        <canvas>
-            id="DPS_Chart" style="width:100%;max-width:700px"
-        </canvas>
+        <div class="modal-buttons">
+            <button class="btn btn-ghost" onclick="closeModal()">Abbrechen</button>
+            <button class="btn btn-accent" onclick="applyFilter()">Laden</button>
+        </div>
+    </div>
+</div>
 
-        <script src="../js/logic.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script>
-        <script>
-            // 1. Spielerliste (z.B. aus einer Datei geladen oder als Array)
-            const spieler = ["Alice", "Bob", "Charlie"]; // <- kommt aus deiner spielerliste.txt
+<div id="empty-state">
+    <div class="big-icon">&#128202;</div>
+    <p>Öffne den Filter und wähle eine Gruppe, um Daten zu laden.</p>
+    <button class="btn btn-primary" onclick="openModal()">Filter öffnen</button>
+</div>
 
-            const container = document.getElementById("charts-container");
+<div id="dashboard">
+    <div class="section-title">DPS</div>
+    <div class="chart-grid">
+        <div class="chart-card"><h3>Total DPS</h3><canvas id="chart-dps"></canvas></div>
+        <div class="chart-card"><h3>Power DPS</h3><canvas id="chart-power-dps"></canvas></div>
+        <div class="chart-card"><h3>Condi DPS</h3><canvas id="chart-condi-dps"></canvas></div>
+    </div>
 
-            spieler.forEach((name, index) => {
-            // 2. Canvas-Element dynamisch erzeugen
-            const wrapper = document.createElement("div");
-            const canvas = document.createElement("canvas");
-            canvas.id = `chart-${index}`;
-            wrapper.appendChild(canvas);
-            container.appendChild(wrapper);
+    <div class="section-title">Defenses</div>
+    <div class="chart-grid">
+        <div class="chart-card"><h3>Damage Taken</h3><canvas id="chart-dmg-taken"></canvas></div>
+        <div class="chart-card"><h3>CC Received (Anzahl)</h3><canvas id="chart-cc-count"></canvas></div>
+        <div class="chart-card"><h3>CC Received (Dauer ms)</h3><canvas id="chart-cc-duration"></canvas></div>
+    </div>
 
-            // 3. Chart.js-Instanz für dieses Canvas
-            new Chart(canvas, {
-                type: "bar",
-                data: {
-                labels: ["Runde 1", "Runde 2", "Runde 3"],
-                datasets: [{
-                    label: name,
-                    data: [/* Daten für diesen Spieler */],
-                }]
-                }
-            });
-            });
-        </script>
-    </body>
+    <div class="section-title">Support</div>
+    <div class="chart-grid">
+        <div class="chart-card"><h3>Rezzes</h3><canvas id="chart-rezzes"></canvas></div>
+        <div class="chart-card"><h3>Rez Time (s)</h3><canvas id="chart-rez-time"></canvas></div>
+        <div class="chart-card"><h3>Condi Cleanses</h3><canvas id="chart-cleanses"></canvas></div>
+        <div class="chart-card"><h3>Boon Strips</h3><canvas id="chart-boon-strips"></canvas></div>
+    </div>
+
+    <div class="section-title">Positioning</div>
+    <div class="chart-grid">
+        <div class="chart-card"><h3>Stack Distance</h3><canvas id="chart-stack-dist"></canvas></div>
+        <div class="chart-card"><h3>Distance to Commander</h3><canvas id="chart-comm-dist"></canvas></div>
+        <div class="chart-card"><h3>Flanking Rate</h3><canvas id="chart-flanking"></canvas></div>
+    </div>
+
+    <div class="section-title">Sonstiges</div>
+    <div class="chart-grid">
+        <div class="chart-card"><h3>Downs</h3><canvas id="chart-downs"></canvas></div>
+        <div class="chart-card"><h3>Deaths</h3><canvas id="chart-deaths"></canvas></div>
+        <div class="chart-card"><h3>Skill Cast Uptime</h3><canvas id="chart-cast-uptime"></canvas></div>
+    </div>
+
+    <div class="section-title">Gespielte Klassen</div>
+    <div class="chart-grid" id="class-charts-grid"></div>
+
+    <div class="section-title">Mechaniken</div>
+    <div class="chart-grid cols-2" id="mechanic-charts-grid"></div>
+</div>
+
+<script src="./js/logic.js"></script>
+</body>
 </html>
